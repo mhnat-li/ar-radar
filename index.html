@@ -941,6 +941,19 @@ document.getElementById('btn-3d').addEventListener('click',()=>{
   }
 })();
 
+// ── Auto-launch based on URL hash (from Capabilities landing page) ──
+// #ar  → click AR button
+// #3d  → click 3D button
+(function autoLaunchFromHash(){
+  const h=(location.hash||'').toLowerCase().replace('#','');
+  if(h!=='ar' && h!=='3d') return;
+  // Wait a tick so listeners are attached and capability check has run.
+  setTimeout(()=>{
+    const btn=document.getElementById(h==='ar'?'btn-ar':'btn-3d');
+    if(btn) btn.click();
+  },50);
+})();
+
 document.getElementById('btn-reset').addEventListener('click',()=>{
   oTheta=0;oPhi=0.72;oR=7.5;
   // Re-centre the gyro: recapture the heading reference and hand
