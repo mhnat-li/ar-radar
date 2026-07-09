@@ -2,1037 +2,228 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#06060f">
-<title>Lingaro Tech Radar · AR</title>
+<title>Lingaro Capabilities</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bot:env(safe-area-inset-bottom,0px);
-  --card-bg:rgba(7,7,20,0.97);
-  --border:rgba(255,255,255,0.09);
-  --text:rgba(255,255,255,0.9);
-  --dim:rgba(255,255,255,0.45);
-  --muted:rgba(255,255,255,0.25);
-  --surface:rgba(255,255,255,0.04);
-  --surface2:rgba(255,255,255,0.07);
+  --bg:#06060f;
+  --lingaro-purple:#6b2fb3;
+  --lingaro-purple-light:#9b6bd8;
+  --text:rgba(255,255,255,0.92);
+  --dim:rgba(255,255,255,0.55);
+  --muted:rgba(255,255,255,0.32);
+  --card:rgba(255,255,255,0.045);
+  --card-hover:rgba(255,255,255,0.08);
+  --border:rgba(255,255,255,0.1);
 }
-html,body{height:100%;overflow:hidden;background:#06060f;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+html,body{min-height:100%;background:var(--bg);font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(107,47,179,0.28) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 100%, rgba(59,130,246,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 15% 90%, rgba(52,211,153,0.10) 0%, transparent 60%),
+    var(--bg);
+  display:flex;flex-direction:column;align-items:center;
+  padding:32px 20px 48px;
+}
 
-/* ─ CAMERA ─ */
-#cam{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:0;transition:opacity 1s}
-#cam.on{opacity:1}
+/* Header / logo */
+.header{
+  display:flex;flex-direction:column;align-items:center;gap:18px;
+  margin-bottom:8px;padding-top:24px;
+}
+.logo-wrap{
+  background:#fff;padding:20px 32px;border-radius:20px;
+  box-shadow:0 20px 60px rgba(107,47,179,0.35),0 0 0 1px rgba(255,255,255,0.05);
+}
+.logo-wrap img{display:block;height:64px;width:auto}
+.tag{
+  font-size:11px;letter-spacing:5px;text-transform:uppercase;
+  color:var(--dim);font-weight:600;
+}
 
-/* ─ THREE CANVAS ─ */
-#c{position:fixed;inset:0;z-index:1;touch-action:none;display:block}
+/* Title block */
+.title-block{text-align:center;margin:36px 0 44px;max-width:640px}
+.title{
+  font-size:clamp(34px,6vw,52px);font-weight:800;line-height:1.1;
+  background:linear-gradient(135deg,#c084fc 0%,#818cf8 45%,#60a5fa 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:16px;letter-spacing:-0.5px;
+}
+.subtitle{
+  font-size:15px;color:var(--dim);line-height:1.65;max-width:520px;margin:0 auto;
+}
 
-/* ─ LOADING ─ */
-#loading{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(6,6,20,0.8);backdrop-filter:blur(12px);display:none}
-#loading.show{display:flex}
-.spinner{width:38px;height:38px;border:2.5px solid rgba(99,102,241,0.2);border-top-color:#818cf8;border-radius:50%;animation:spin .75s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* Cards grid */
+.grid{
+  display:grid;gap:20px;width:100%;max-width:1080px;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:28px 26px 26px;
+  text-decoration:none;color:inherit;
+  display:flex;flex-direction:column;
+  cursor:pointer;
+  transition:transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  position:relative;overflow:hidden;
+  min-height:280px;
+}
+.card::before{
+  content:"";position:absolute;inset:0;border-radius:22px;
+  background:linear-gradient(135deg,var(--accent-a,rgba(255,255,255,0)) 0%,transparent 60%);
+  opacity:0;transition:opacity .25s ease;pointer-events:none;
+}
+.card:hover{
+  transform:translateY(-4px);
+  background:var(--card-hover);
+  border-color:rgba(255,255,255,0.18);
+  box-shadow:0 20px 50px rgba(0,0,0,0.4);
+}
+.card:hover::before{opacity:1}
+.card:active{transform:translateY(-1px)}
 
-/* ─ START SCREEN ─ */
-#start{position:fixed;inset:0;z-index:150;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:36px 28px;background:radial-gradient(ellipse at 50% 40%,#0d1b40 0%,#06060f 70%);padding-top:calc(var(--safe-top) + 36px)}
-.s-logo{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--dim);font-weight:600}
-.s-title{font-size:clamp(30px,7vw,44px);font-weight:800;text-align:center;line-height:1.15;background:linear-gradient(135deg,#60a5fa 0%,#a78bfa 50%,#34d399 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.s-desc{font-size:13.5px;color:var(--dim);text-align:center;line-height:1.7;max-width:300px}
-.s-badges{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
-.s-badge{font-size:11px;padding:4px 12px;border-radius:100px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:var(--dim)}
-.s-btn{border:none;border-radius:16px;padding:15px 34px;font-size:15.5px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:.3px;transition:transform .13s,box-shadow .13s;width:100%;max-width:300px}
-.s-btn.primary{background:linear-gradient(135deg,#3b82f6,#7c3aed);box-shadow:0 8px 28px rgba(99,102,241,.45)}
-.s-btn.primary:active{transform:scale(.97);box-shadow:0 4px 16px rgba(99,102,241,.35)}
-.s-btn.ghost{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);font-size:14px;padding:12px 28px}
-.s-btn.ghost:active{background:rgba(255,255,255,0.12)}
+.card-icon{
+  width:56px;height:56px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:20px;
+  background:var(--icon-bg);
+  color:#fff;
+}
+.card-icon svg{width:28px;height:28px}
 
-/* ─ HUD ─ */
-#hud{position:fixed;top:0;left:0;right:0;z-index:80;display:none;align-items:center;justify-content:space-between;padding:14px 16px;padding-top:calc(var(--safe-top) + 14px)}
-#hud.show{display:flex}
-.hud-pill{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.88);background:rgba(6,6,20,0.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);padding:8px 14px;border-radius:100px;border:1px solid rgba(255,255,255,0.11)}
-.hud-right{display:flex;gap:7px}
-.hud-btn{width:37px;height:37px;border-radius:12px;background:rgba(6,6,20,0.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,0.11);color:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;-webkit-tap-highlight-color:transparent}
-.hud-btn:active{background:rgba(255,255,255,0.1)}
+.card-tag{
+  font-size:10.5px;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--dim);font-weight:700;margin-bottom:8px;
+}
+.card-title{
+  font-size:22px;font-weight:700;margin-bottom:10px;letter-spacing:-0.3px;
+}
+.card-desc{
+  font-size:13.5px;color:var(--dim);line-height:1.6;
+  flex:1;margin-bottom:20px;
+}
+.card-cta{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:600;color:var(--text);
+}
+.card-cta .arrow{
+  transition:transform .2s ease;
+  display:inline-block;
+}
+.card:hover .card-cta .arrow{transform:translateX(4px)}
 
-/* ─ BLIP LABELS ─ */
-#labels{position:fixed;inset:0;z-index:10;pointer-events:none;display:none}
-#labels.show{display:block}
-.blabel{position:absolute;transform:translate(-50%,-100%);pointer-events:none}
-.blabel span{display:block;font-size:9px;font-weight:600;color:#fff;text-align:center;white-space:nowrap;text-shadow:0 1px 6px #000,0 0 12px #000;letter-spacing:.2px;max-width:76px;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+/* Card accents */
+.card.ar{--accent-a:rgba(107,47,179,0.18);--icon-bg:linear-gradient(135deg,#6b2fb3,#9b6bd8)}
+.card.threed{--accent-a:rgba(59,130,246,0.18);--icon-bg:linear-gradient(135deg,#3b82f6,#7c3aed)}
+.card.static{--accent-a:rgba(52,211,153,0.15);--icon-bg:linear-gradient(135deg,#10b981,#3b82f6)}
 
-/* ─ MODE TOAST ─ */
-#toast{position:fixed;bottom:calc(var(--safe-bot) + 20px);left:50%;transform:translateX(-50%);z-index:90;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);background:rgba(6,6,20,0.75);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);padding:6px 16px;border-radius:100px;border:1px solid var(--border);pointer-events:none;opacity:0;transition:opacity .4s}
-#toast.show{opacity:1}
+.badge-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.badge{
+  font-size:10px;padding:3px 9px;border-radius:100px;
+  background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.1);
+  color:var(--dim);font-weight:500;
+}
 
-/* ─ INFO CARD ─ */
-#card{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--card-bg);backdrop-filter:blur(36px);-webkit-backdrop-filter:blur(36px);border-top:1px solid var(--border);border-radius:22px 22px 0 0;transform:translateY(102%);transition:transform .44s cubic-bezier(.16,1,.3,1);max-height:84dvh;display:flex;flex-direction:column;padding-bottom:var(--safe-bot)}
-#card.open{transform:translateY(0)}
-.card-handle{width:34px;height:4px;background:rgba(255,255,255,0.18);border-radius:2px;margin:10px auto 0;flex-shrink:0}
-.card-hdr{display:flex;align-items:flex-start;gap:11px;padding:14px 18px 12px;flex-shrink:0;border-bottom:1px solid var(--border)}
-.card-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;font-size:13px}
-.card-titlewrap{flex:1;min-width:0}
-.card-title{font-size:17.5px;font-weight:700;color:#fff;line-height:1.2}
-.card-sub{font-size:11.5px;color:var(--dim);margin-top:3px}
-.card-x{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,0.07);border:1px solid var(--border);color:var(--dim);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:14px;-webkit-tap-highlight-color:transparent}
-.card-body{flex:1;overflow-y:auto;padding:2px 18px 20px;-webkit-overflow-scrolling:touch}
-.card-body::-webkit-scrollbar{display:none}
-.slabel{font-size:8.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:18px 0 9px;display:flex;align-items:center;gap:8px}
-.slabel::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06)}
-.card-desc{font-size:13px;line-height:1.74;color:var(--dim)}
-.back-btn{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);cursor:pointer;padding:2px 0 14px;-webkit-tap-highlight-color:transparent}
-.back-btn svg{flex-shrink:0}
-.badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:2px}
-.badge{font-size:10px;padding:3px 9px;border-radius:100px;border:1px solid var(--border);color:var(--dim);background:var(--surface)}
+.footer{
+  margin-top:56px;font-size:11.5px;color:var(--muted);
+  letter-spacing:1px;text-transform:uppercase;
+}
 
-/* drill rows */
-.drow{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 13px;margin-bottom:7px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .12s,border-color .12s}
-.drow:active{background:var(--surface2);border-color:rgba(255,255,255,0.15)}
-.dic{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0}
-.dmain{flex:1;min-width:0}
-.dname{font-size:13.5px;font-weight:600;color:#fff;margin-bottom:2px}
-.dmeta{font-size:11px;color:var(--dim)}
-.darrow{color:var(--muted);flex-shrink:0}
-
-/* profile rows */
-.prow{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:7px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.prow:active{background:var(--surface2)}
-.ptop{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px}
-.pavi{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
-.pname2{font-size:13.5px;font-weight:600;color:#fff;margin-bottom:2px}
-.prole{font-size:11px;color:var(--dim)}
-.pchips{display:flex;gap:5px;flex-wrap:wrap}
-.pchip{font-size:9.5px;padding:2px 8px;border-radius:100px;background:var(--surface2);border:1px solid var(--border);color:var(--dim)}
-
-/* rate grid */
-.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
-.rcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 10px;text-align:center}
-.rcur{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;font-weight:600}
-.ramt{font-size:20px;font-weight:800;color:#fff;line-height:1.1}
-.runit{font-size:8px;color:var(--muted);margin-top:3px}
-
-/* skill tags */
-.stags{display:flex;flex-wrap:wrap;gap:5px}
-.stag{font-size:10px;padding:3px 9px;border-radius:100px;background:var(--surface2);border:1px solid var(--border);color:var(--dim)}
-.ebadges{display:flex;gap:6px;flex-wrap:wrap}
-.ebadge{font-size:11px;padding:4px 11px;border-radius:100px;border:1px solid var(--border);color:var(--dim)}
+@media (max-width:520px){
+  .logo-wrap{padding:16px 24px}
+  .logo-wrap img{height:52px}
+  .title-block{margin:28px 0 32px}
+  .card{min-height:auto;padding:24px 22px}
+  .card-icon{width:48px;height:48px;margin-bottom:16px}
+}
 </style>
 </head>
 <body>
 
-<video id="cam" autoplay playsinline muted></video>
-<canvas id="c"></canvas>
-<div id="loading"><div class="spinner"></div></div>
+<header class="header">
+  <div class="logo-wrap">
+    <img src="lingaro_logo.png" alt="Lingaro">
+  </div>
+  <div class="tag">Achieve More With Data &amp; AI</div>
+</header>
 
-<!-- START -->
-<div id="start">
-  <div class="s-logo">Lingaro Group</div>
-  <div class="s-title">Tech Radar<br>in AR</div>
-  <div class="s-desc">Explore 18 technologies in an immersive 3D radar. In AR mode the radar sits level in front of you — move your phone to look around it. Tap any blip to drill into sub-technologies, expert profiles, and engagement rates.</div>
-  <div class="s-badges">
-    <span class="s-badge">📷 Camera AR</span>
-    <span class="s-badge">🧭 Auto-Level Gyro</span>
-    <span class="s-badge">👆 Touch Orbit</span>
-    <span class="s-badge">💰 Live Rates</span>
-  </div>
-  <div id="https-warn" style="display:none;background:rgba(234,88,12,0.12);border:1px solid rgba(234,88,12,0.35);border-radius:12px;padding:11px 15px;font-size:12px;color:rgba(255,200,150,0.92);text-align:center;max-width:300px;line-height:1.6">
-    ⚠️ <strong>HTTPS required for camera</strong><br>Serve this file via HTTPS (or localhost) to enable AR. 3D mode always works.
-  </div>
-  <button class="s-btn primary" id="btn-ar">Launch AR Mode</button>
-  <button class="s-btn ghost" id="btn-3d">3D Mode (no camera)</button>
+<div class="title-block">
+  <h1 class="title">Lingaro Capabilities</h1>
+  <p class="subtitle">Explore our technology radar across data, AI, and cloud — choose how you want to experience it.</p>
 </div>
 
-<!-- HUD -->
-<div id="hud">
-  <div class="hud-pill">Lingaro Tech Radar</div>
-  <div class="hud-right">
-    <div class="hud-btn" id="btn-reset" title="Reset view">⟳</div>
-    <div class="hud-btn" id="btn-home" title="Home">⌂</div>
-  </div>
-</div>
+<main class="grid">
 
-<!-- Blip labels -->
-<div id="labels"></div>
-
-<!-- Mode toast -->
-<div id="toast"></div>
-
-<!-- Info card -->
-<div id="card">
-  <div class="card-handle" id="card-handle"></div>
-  <div class="card-hdr" id="card-hdr"></div>
-  <div class="card-body" id="card-body"></div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script>
-'use strict';
-// ══════════════════════════════════════════════════════════════
-//  DATA MODEL
-// ══════════════════════════════════════════════════════════════
-const CATS=[
-  {id:0,name:'Operating Systems', short:'OS',       color:'#2E7D32'},
-  {id:1,name:'Developer',         short:'DEV',      color:'#5E35B1'},
-  {id:2,name:'Business Apps',     short:'BIZ',      color:'#00838F'},
-  {id:3,name:'Modern Work',       short:'WORK',     color:'#C62828'},
-  {id:4,name:'Data and AI',       short:'AI',       color:'#1565C0'},
-  {id:5,name:'Browser & Search',  short:'WEB',      color:'#E65100'},
-];
-const RINGS=[
-  {id:0,name:'Experts',           color:'#8E24AA'},
-  {id:1,name:'Senior Developer',  color:'#1E88E5'},
-  {id:2,name:'Mid Developer',     color:'#00897B'},
-  {id:3,name:'Regular Developer', color:'#78909C'},
-];
-function P(name,role,yrs,ring,bio){const ini=name.split(' ').map(w=>w[0]).slice(0,2).join('');return{name,role,yrs,ring,ini,bio};}
-const TECH=[
-  {id:'t1',cat:0,r:0,name:'Windows 11',desc:'Modern Microsoft desktop OS and the primary endpoint for Copilot, Intune management and enterprise deployment.',subs:[
-    {name:'Windows Copilot',r:0,profiles:[P('Ola Nowak','Principal OS Engineer',12,0,'Leads the Windows Copilot integration guild; owns shell-extensibility standards.'),P('Marek Zieliński','Senior Windows Engineer',8,1,'Builds Copilot side-panel plugins and WinAppSDK actions for enterprise clients.'),P('Kasia Wróbel','Mid Endpoint Developer',4,2,'Ships Copilot deployment scripts and Group Policy templates.')]},
-    {name:'Intune / MDM',r:1,profiles:[P('Tomasz Lis','Senior Endpoint Architect',9,1,'Designs zero-touch Autopilot + Intune rollouts for 40k-seat estates.'),P('Ewa Bąk','Mid Intune Engineer',5,2,'Automates compliance policies and app-protection baselines.'),P('Adam Górski','Regular Endpoint Dev',2,3,'Maintains device configuration profiles and reporting dashboards.')]},
-    {name:'Defender / Security',r:1,profiles:[P('Nina Sokół','Principal Security Engineer',13,0,'Threat-hunting lead; architects Defender for Endpoint across regulated tenants.'),P('Piotr Duda','Senior Security Dev',7,1,'Writes custom detection rules and KQL analytics for SecOps teams.')]},
-  ]},
-  {id:'t2',cat:0,r:2,name:'Windows Apps',desc:'Built-in productivity apps — Notepad, Paint, Photos, Snipping Tool, Clipchamp — increasingly Copilot-enhanced.',subs:[
-    {name:'Clipchamp',r:2,profiles:[P('Julia Mazur','Mid Media Developer',5,2,'Builds automated video-editing pipelines with Clipchamp APIs.'),P('Bartek Nowicki','Regular Dev',2,3,'Creates branded export templates for marketing teams.')]},
-    {name:'Paint / Photos AI',r:3,profiles:[P('Zofia Kruk','Regular Creative Dev',3,3,'Prototypes generative fill and background-removal flows.'),P('Michał Sowa','Mid App Developer',4,2,'Integrates Cocreator image generation into internal tools.')]},
-  ]},
-  {id:'t3',cat:1,r:0,name:'Visual Studio',desc:'Flagship IDE for .NET, C++ and enterprise application development with deep Copilot integration.',subs:[
-    {name:'.NET / C#',r:0,profiles:[P('Rafał Wiśniewski','Principal .NET Architect',14,0,'Sets the C#/.NET standards library used across all delivery squads.'),P('Anna Lewandowska','Senior Backend Dev',9,1,'Builds high-throughput ASP.NET services and minimal APIs.'),P('Kuba Pawlak','Mid .NET Developer',5,2,'Delivers domain microservices and EF Core data layers.'),P('Ola Dąbrowska','Regular .NET Dev',2,3,'Implements REST endpoints and unit-test coverage.')]},
-    {name:'Copilot in VS',r:1,profiles:[P('Grzegorz Kamiński','Senior DevEx Engineer',8,1,'Rolls out Copilot Enterprise policies and prompt-library governance.'),P('Maja Wieczorek','Mid Developer',4,2,'Measures Copilot acceptance rates and builds team enablement.')]},
-  ]},
-  {id:'t4',cat:1,r:1,name:'VS Code',desc:'Lightweight cross-platform editor; the default surface for web, Python and cloud development.',subs:[
-    {name:'Extensions / API',r:1,profiles:[P('Szymon Baran','Senior Tooling Engineer',8,1,'Authors internal VS Code extensions and the shared devcontainer stack.'),P('Karol Sikora','Mid Extension Dev',5,2,'Maintains linting and snippet extensions for delivery teams.'),P('Iga Michalak','Regular Dev',2,3,'Builds theme and productivity extensions.')]},
-    {name:'Dev Containers',r:2,profiles:[P('Wojtek Adamczyk','Mid Platform Dev',5,2,'Standardises reproducible dev environments across repos.'),P('Ala Krawczyk','Regular Dev',3,3,'Maintains base images and Codespaces configs.')]},
-  ]},
-  {id:'t5',cat:1,r:0,name:'GitHub',desc:'Source control, CI/CD (Actions) and GitHub Copilot — the code-collaboration backbone.',subs:[
-    {name:'GitHub Actions',r:0,profiles:[P('Damian Woźniak','Principal DevOps Engineer',13,0,'Owns the reusable Actions library and org-wide CI/CD golden paths.'),P('Patrycja Zając','Senior Platform Dev',8,1,'Builds secure release pipelines with OIDC and environments.'),P('Filip Górecki','Mid DevOps Dev',5,2,'Writes composite actions and matrix build workflows.')]},
-    {name:'GitHub Copilot',r:1,profiles:[P('Ela Baranowska','Senior AI DevEx',7,1,'Leads Copilot adoption programs and custom-instruction standards.'),P('Norbert Cichy','Mid Developer',4,2,'Runs enablement and productivity measurement.'),P('Sara Głowacka','Regular Dev',2,3,'Pilots Copilot Chat workflows on feature teams.')]},
-    {name:'Advanced Security',r:2,profiles:[P('Robert Mróz','Mid AppSec Dev',5,2,'Configures CodeQL, Dependabot and secret scanning at scale.')]},
-  ]},
-  {id:'t6',cat:1,r:2,name:'Power Pages',desc:'Low-code platform for building secure external-facing business websites over Dataverse.',subs:[
-    {name:'Portal Dev',r:2,profiles:[P('Weronika Pająk','Mid Low-code Dev',5,2,'Ships partner and customer portals with Liquid templates.'),P('Dawid Sobczak','Regular Dev',3,3,'Builds forms, lists and Dataverse-backed pages.')]},
-  ]},
-  {id:'t7',cat:2,r:0,name:'Power Platform',desc:'Low-code suite: Power Apps, Power Automate, Power BI and Copilot Studio for citizen and pro developers.',subs:[
-    {name:'Power Automate',r:0,profiles:[P('Magda Urban','Principal Automation Architect',12,0,'Defines the enterprise automation CoE and ALM standards for flows.'),P('Łukasz Wilk','Senior Automation Dev',8,1,'Builds cloud + desktop RPA solutions with governed connectors.'),P('Ola Marciniak','Mid Flow Developer',5,2,'Delivers approval and integration flows across M365.'),P('Tymon Rutkowski','Regular Dev',2,3,'Maintains scheduled flows and error-handling patterns.')]},
-    {name:'Power Apps',r:1,profiles:[P('Beata Sadowska','Senior App Maker',9,1,'Architects model-driven apps on Dataverse for field teams.'),P('Igor Czarnecki','Mid Canvas Dev',5,2,'Builds canvas apps with Power Fx and custom components.'),P('Lena Ostrowska','Regular Dev',3,3,'Creates responsive canvas apps and PCF wrappers.')]},
-    {name:'Copilot Studio',r:0,profiles:[P('Kamil Jaworski','Principal Agent Architect',11,0,'Leads custom-copilot and agent orchestration practice.'),P('Nadia Wysocka','Senior Agent Dev',7,1,'Builds topic + action flows grounded on enterprise knowledge.'),P('Oskar Lis','Mid Developer',4,2,'Wires connectors and generative answers into agents.')]},
-  ]},
-  {id:'t8',cat:2,r:1,name:'Dynamics 365',desc:'Enterprise CRM + ERP suite — Sales, Customer Service, Field Service, Finance, Supply Chain, Business Central.',subs:[
-    {name:'Sales / CE',r:1,profiles:[P('Renata Kozłowska','Senior D365 Consultant',10,1,'Leads Customer Engagement implementations with Copilot for Sales.'),P('Bruno Stępień','Mid CRM Developer',5,2,'Extends Sales with plugins and business rules.'),P('Ida Wróbel','Regular Dev',2,3,'Configures forms, views and workflows.')]},
-    {name:'Finance & SCM',r:2,profiles:[P('Marcin Sawicki','Mid F&O Developer',5,2,'Builds X++ extensions for Finance & Operations.'),P('Gaba Zawadzka','Regular Dev',3,3,'Maintains data-entity integrations and reports.')]},
-    {name:'Business Central',r:2,profiles:[P('Hubert Malinowski','Mid AL Developer',5,2,'Delivers Business Central extensions in AL.')]},
-  ]},
-  {id:'t9',cat:2,r:2,name:'Power BI',desc:'Self-service and enterprise BI — semantic models, reports and Fabric-integrated analytics.',subs:[
-    {name:'Semantic Models',r:1,profiles:[P('Justyna Borkowska','Senior BI Architect',9,1,'Designs enterprise semantic layers with DAX and RLS.'),P('Cezary Wilczyński','Mid BI Developer',5,2,'Builds star-schema models and calculation groups.')]},
-    {name:'Reports / DAX',r:2,profiles:[P('Patryk Sokołowski','Mid Report Developer',4,2,'Creates performant paginated and interactive reports.'),P('Ala Nowacka','Regular BI Dev',2,3,'Builds dashboards and bookmarks for business users.')]},
-  ]},
-  {id:'t10',cat:3,r:0,name:'Microsoft 365',desc:'Core productivity suite — Word, Excel, PowerPoint, Outlook, OneNote — with M365 Copilot embedded.',subs:[
-    {name:'M365 Copilot',r:0,profiles:[P('Dorota Kaczmarek','Principal Adoption Lead',12,0,'Owns the M365 Copilot readiness and data-governance framework.'),P('Sławek Baran','Senior M365 Engineer',8,1,'Configures Copilot, sensitivity labels and oversharing controls.'),P('Kinga Michalska','Mid Developer',4,2,'Builds Copilot extensibility with Graph connectors.'),P('Olek Zieliński','Regular Dev',2,3,'Rolls out prompt libraries and user enablement.')]},
-    {name:'Office Add-ins',r:1,profiles:[P('Wiktor Pawłowski','Senior Add-in Dev',8,1,'Builds Office.js add-ins for Word and Excel automation.'),P('Ula Sikorska','Mid Developer',5,2,'Ships task-pane add-ins and ribbon customizations.')]},
-  ]},
-  {id:'t11',cat:3,r:1,name:'Teams',desc:'Collaboration hub for meetings, chat and app hosting; a primary Copilot surface.',subs:[
-    {name:'Teams Apps',r:1,profiles:[P('Fabian Górski','Senior Teams Dev',8,1,'Builds Teams apps, bots and message extensions on the Bot Framework.'),P('Marta Jankowska','Mid Developer',5,2,'Creates tabs and adaptive-card workflows.'),P('Tobiasz Kania','Regular Dev',2,3,'Maintains meeting apps and notifications.')]},
-    {name:'Graph API',r:0,profiles:[P('Emil Nowakowski','Principal Graph Engineer',11,0,'Architects Microsoft Graph integrations and change-notification pipelines.'),P('Roksana Duda','Senior Developer',7,1,'Builds Graph-backed automation and data connectors.')]},
-  ]},
-  {id:'t12',cat:3,r:2,name:'SharePoint',desc:'Content and intranet platform underpinning M365 collaboration and Copilot grounding data.',subs:[
-    {name:'SPFx',r:2,profiles:[P('Krystian Baran','Mid SPFx Developer',5,2,'Builds SharePoint Framework web parts in React/TypeScript.'),P('Nela Woźniak','Regular Dev',3,3,'Maintains site templates and provisioning scripts.')]},
-    {name:'Viva',r:3,profiles:[P('Alan Krupa','Regular Dev',2,3,'Configures Viva Connections and Learning integrations.')]},
-  ]},
-  {id:'t13',cat:4,r:0,name:'Azure',desc:'Hyperscale cloud — the hosting, identity and AI backbone for the entire Microsoft stack.',subs:[
-    {name:'Azure OpenAI',r:0,profiles:[P('Weronika Sawicka','Principal AI Architect',13,0,'Leads enterprise generative-AI platform and RAG reference architecture.'),P('Mateusz Kowal','Senior AI Engineer',8,1,'Builds governed GPT deployments with content filtering and evals.'),P('Klara Zając','Mid AI Developer',5,2,'Implements RAG pipelines and prompt-flow orchestration.'),P('Bartosz Lis','Regular Dev',2,3,'Wires model endpoints into applications.')]},
-    {name:'AKS / Containers',r:1,profiles:[P('Radek Mazurek','Senior Cloud Engineer',9,1,'Runs AKS platforms with GitOps and service mesh.'),P('Sonia Bąk','Mid Platform Dev',5,2,'Deploys containerized ML inference services.')]},
-    {name:'Bicep / IaC',r:2,profiles:[P('Igor Sadowski','Mid Cloud Dev',4,2,'Authors reusable Bicep modules for landing zones.'),P('Ela Ptak','Regular Dev',3,3,'Maintains infrastructure pipelines and policy-as-code.')]},
-  ]},
-  {id:'t14',cat:4,r:1,name:'Azure Synapse / Fabric',desc:'Unified analytics — data engineering, warehousing and OneLake storage under Microsoft Fabric.',subs:[
-    {name:'Fabric Notebooks',r:1,profiles:[P('Kacper Wróblewski','Senior Data Engineer',9,1,'Builds Spark and Python data pipelines in Fabric.'),P('Adrianna Kot','Mid Data Dev',5,2,'Develops Lakehouse medallion architectures.')]},
-    {name:'Data Factory',r:2,profiles:[P('Leon Czajka','Mid ETL Developer',4,2,'Creates ADF pipelines and mapping data flows.'),P('Wanda Sobota','Regular Dev',3,3,'Maintains ingestion connectors and triggers.')]},
-  ]},
-  {id:'t15',cat:4,r:2,name:'Azure AI Services',desc:'Prebuilt AI — Speech, Vision, Language, Document Intelligence and Azure AI Search.',subs:[
-    {name:'Speech / Vision',r:2,profiles:[P('Blanka Urbańska','Mid AI Developer',5,2,'Integrates speech-to-text and vision APIs into products.'),P('Franek Dąbek','Regular Dev',2,3,'Builds OCR and document-intelligence flows.')]},
-    {name:'AI Search',r:1,profiles:[P('Cyprian Nowak','Senior Search Engineer',8,1,'Designs vector + hybrid search for enterprise RAG.')]},
-  ]},
-  {id:'t16',cat:5,r:1,name:'Microsoft Edge',desc:'Chromium-based enterprise browser with Copilot sidebar, Workspaces and management policies.',subs:[
-    {name:'Edge for Business',r:1,profiles:[P('Iwona Baranowska','Senior Browser Engineer',8,1,'Manages Edge enterprise policies and extension governance.'),P('Konrad Wilk','Mid Developer',5,2,'Builds internal Edge extensions and Workspaces automation.'),P('Ada Górska','Regular Dev',2,3,'Maintains managed-browser configuration baselines.')]},
-  ]},
-  {id:'t17',cat:5,r:0,name:'Copilot / Bing',desc:'Web-grounded Copilot experience across Bing, Edge and the web — enterprise data protection enabled.',subs:[
-    {name:'Copilot for Web',r:0,profiles:[P('Sebastian Kowalczyk','Principal Copilot Strategist',12,0,'Leads web-grounded Copilot rollout and responsible-AI review.'),P('Maja Lewandowska','Senior Developer',7,1,'Builds Copilot-connected plugins and web-data workflows.'),P('Igor Pawlak','Mid Developer',4,2,'Configures enterprise data protection and usage analytics.')]},
-    {name:'Image Creator',r:2,profiles:[P('Ola Sobczak','Mid Creative Dev',5,2,'Integrates DALL·E image generation into content tools.'),P('Nikodem Baran','Regular Dev',2,3,'Builds prompt templates for marketing imagery.')]},
-  ]},
-  {id:'t18',cat:5,r:2,name:'Shopping / Vision',desc:'Copilot shopping, visual search and multimodal web experiences.',subs:[
-    {name:'Visual Search',r:2,profiles:[P('Laura Kruk','Mid Developer',4,2,'Builds visual-search and product-matching prototypes.'),P('Damian Ptak','Regular Dev',3,3,'Wires shopping APIs into commerce flows.')]},
-  ]},
-];
-
-// ── RATE HELPERS ──────────────────────────────────────────────
-const RATE_BASE_EUR=[145,98,72,50];
-const PROF_DESCS=[
-  'Drives cross-functional alignment and ensures technical excellence across delivery streams.',
-  'Combines deep domain expertise with a hands-on engineering mindset to accelerate project velocity.',
-  'Recognized for bridging business requirements with scalable technical architecture.',
-  'Brings a structured approach to complex integrations and thrives in fast-paced environments.',
-  'Focuses on code quality, team enablement, and continuous delivery practices.',
-  'Translates stakeholder needs into pragmatic engineering solutions with minimal waste.',
-  'Passionate about developer experience and inner-loop optimization for delivery teams.',
-  'Delivers robust, maintainable solutions with an eye for long-term operational health.',
-  'Known for mentoring engineers and elevating team capability on modern cloud toolchains.',
-  'Leads technical discovery workshops and drives architecture decision records across programs.',
-  'Applies a product mindset to engineering — outcome-driven, iterative, and customer-centric.',
-  'Expert at navigating legacy-to-cloud migrations while keeping production systems stable.',
-];
-const SKILLS_POOL=[
-  ['Azure DevOps','CI/CD','Bicep','Terraform','GitOps'],
-  ['React','TypeScript','Node.js','REST APIs','GraphQL'],
-  ['Python','FastAPI','Databricks','Spark','MLflow'],
-  ['Power Platform','Power Automate','Canvas Apps','PCF'],
-  ['D365 CE','Model-Driven Apps','Dataverse','KQL'],
-  ['SharePoint','SPFx','Microsoft Graph','Teams SDK'],
-  ['.NET 8','C#','EF Core','SignalR','gRPC'],
-  ['Azure OpenAI','LangChain','RAG','Prompt Engineering'],
-  ['Kubernetes','Helm','ArgoCD','KEDA','Istio'],
-  ['SQL','Synapse Analytics','Power BI','DAX','Fabric'],
-];
-const ENGAGEMENT_MODELS=['Consulting','Staff Augmentation','B2B Contract','Advisory'];
-const AVAIL_LABELS=['Available','Available in 2 weeks','Available in 1 month','On engagement'];
-
-function hashStr(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return Math.abs(h)+1;}
-function rng(seed){let s=seed|0;return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
-
-function profileRates(p){
-  const g=rng(hashStr(p.name+p.role));const base=RATE_BASE_EUR[p.ring];const j=(g()-0.5)*0.26;
-  const eur=Math.round(base*(1+j)/5)*5;
-  return{eur,pln:Math.round(eur*(4.10+g()*0.22)/10)*10,usd:Math.round(eur*(1.05+g()*0.08)/5)*5,chf:Math.round(eur*(0.90+g()*0.07)/5)*5};
-}
-function profileExtras(p){
-  const g=rng(hashStr(p.name+p.yrs));
-  const desc=PROF_DESCS[Math.floor(g()*PROF_DESCS.length)];
-  const pool=SKILLS_POOL[Math.floor(g()*SKILLS_POOL.length)];
-  const skills=pool.slice(0,3+Math.floor(g()*3));
-  return{desc,skills,engagement:ENGAGEMENT_MODELS[Math.floor(g()*ENGAGEMENT_MODELS.length)],avail:AVAIL_LABELS[Math.floor(g()*AVAIL_LABELS.length)]};
-}
-
-// ══════════════════════════════════════════════════════════════
-//  BLIP PLACEMENT (adapted from desktop; outputs 3D x/z coords)
-// ══════════════════════════════════════════════════════════════
-const RADAR_R=3.0;
-const NC=CATS.length;
-const PAD=0.16;
-// Proportional to desktop RB=[0,138,248,344,430]/430*RADAR_R
-const RB3=[0,0.963,1.732,2.4,3.0];
-
-function catArc(i){const step=2*Math.PI/NC;const s=-Math.PI/2+i*step;return[s,s+step];}
-function catArcPad(i){const[s,e]=catArc(i);return[s+PAD,e-PAD];}
-
-function placeBlips(blips){
-  const groups={};
-  for(const b of blips){const k=`${b.cat}|${b.r}`;(groups[k]=groups[k]||[]).push(b);}
-  for(const grp of Object.values(groups)){
-    const cat=grp[0].cat,r=grp[0].r;
-    let[as,ae]=catArcPad(cat);const ins=0.06;as+=ins;ae-=ins;
-    const rMin=RB3[r]+0.14,rMax=RB3[r+1]-0.11;
-    const span=ae-as,n=grp.length;
-    grp.sort((a,b)=>hashStr(a.key)-hashStr(b.key));
-    grp.forEach((b,i)=>{
-      const ang=n===1?(as+ae)/2:as+span*(i+0.5)/n;
-      let radT=n===1?0.52:n===2?(i===0?0.24:0.80):[0.20,0.82,0.50,0.66,0.34][i%5];
-      const g=rng(hashStr(b.key)*7919);radT+=(g()-0.5)*0.06;
-      radT=Math.max(0.06,Math.min(0.94,radT));
-      const rad=rMin+radT*(rMax-rMin);
-      b.bx=rad*Math.cos(ang);b.bz=rad*Math.sin(ang);
-    });
-  }
-  return blips;
-}
-
-function makeTechBlips(){
-  return placeBlips(TECH.map(t=>({key:t.id,name:t.name,cat:t.cat,r:t.r,ref:t,count:t.subs.reduce((a,s)=>a+s.profiles.length,0)})));
-}
-
-// ══════════════════════════════════════════════════════════════
-//  THREE.JS SCENE
-// ══════════════════════════════════════════════════════════════
-const canvas=document.getElementById('c');
-const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-renderer.setSize(window.innerWidth,window.innerHeight);
-
-const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.01,100);
-
-// Orbit state (spherical coords around origin)
-let oTheta=0,oPhi=0.72,oR=7.5;
-function camUpdate(){
-  camera.position.set(oR*Math.sin(oPhi)*Math.sin(oTheta),oR*Math.cos(oPhi),oR*Math.sin(oPhi)*Math.cos(oTheta));
-  camera.lookAt(0,0,0);
-}
-camUpdate();
-
-// Lights
-scene.add(new THREE.AmbientLight(0x1a1a3e,4));
-const dlight=new THREE.DirectionalLight(0x7799ff,2);dlight.position.set(4,8,4);scene.add(dlight);
-const dlight2=new THREE.DirectionalLight(0xff99ff,0.5);dlight2.position.set(-4,4,-4);scene.add(dlight2);
-
-// ── RADAR GROUP (for startup animation) ──────────────────────
-const radarGroup=new THREE.Group();
-scene.add(radarGroup);
-let introScale=0;  // animates 0→1
-
-// ── BASE DISC ────────────────────────────────────────────────
-const discGeo=new THREE.CylinderGeometry(RADAR_R+0.04,RADAR_R+0.04,0.03,80);
-const discMat=new THREE.MeshStandardMaterial({color:0x030510,transparent:true,opacity:0.9,roughness:0.9,metalness:0.2});
-radarGroup.add(new THREE.Mesh(discGeo,discMat));
-
-// Edge glow rings around disc perimeter
-for(let k=0;k<4;k++){
-  const r=RADAR_R+0.06+k*0.015;
-  const pts=[];for(let j=0;j<=128;j++){const a=j/128*Math.PI*2;pts.push(new THREE.Vector3(r*Math.cos(a),0.016,r*Math.sin(a)));}
-  const g2=new THREE.BufferGeometry().setFromPoints(pts);
-  const m2=new THREE.LineBasicMaterial({color:0x3355cc,transparent:true,opacity:0.18-k*0.04});
-  radarGroup.add(new THREE.Line(g2,m2));
-}
-
-// ── WEDGE HELPER ─────────────────────────────────────────────
-function makeWedge(innerR,outerR,sa,ea,hexColor,op){
-  const shape=new THREE.Shape();const segs=36;const ir=Math.max(innerR,0.001);
-  shape.moveTo(outerR*Math.cos(sa),outerR*Math.sin(sa));
-  for(let i=1;i<=segs;i++){const a=sa+(ea-sa)*i/segs;shape.lineTo(outerR*Math.cos(a),outerR*Math.sin(a));}
-  shape.lineTo(ir*Math.cos(ea),ir*Math.sin(ea));
-  for(let i=segs-1;i>=0;i--){const a=sa+(ea-sa)*i/segs;shape.lineTo(ir*Math.cos(a),ir*Math.sin(a));}
-  shape.closePath();
-  const geo=new THREE.ShapeGeometry(shape,segs);
-  const mat=new THREE.MeshBasicMaterial({color:new THREE.Color(hexColor),transparent:true,opacity:op,side:THREE.DoubleSide,depthWrite:false});
-  const mesh=new THREE.Mesh(geo,mat);mesh.rotation.x=-Math.PI/2;mesh.position.y=0.016;
-  return mesh;
-}
-
-// Category full-wedge tints
-for(const c of CATS){const[sa,ea]=catArc(c.id);radarGroup.add(makeWedge(0,RADAR_R,sa,ea,c.color,0.09));}
-
-// Ring band fills per category
-for(const c of CATS){
-  const[sa,ea]=catArc(c.id);
-  for(let r=0;r<4;r++) radarGroup.add(makeWedge(RB3[r],RB3[r+1],sa,ea,c.color,0.04));
-}
-
-// ── RING LINES ───────────────────────────────────────────────
-const ringLineColors=['#8E24AA','#1E88E5','#00897B','#78909C'];
-for(let i=1;i<RB3.length;i++){
-  const radius=RB3[i];const pts=[];
-  for(let j=0;j<=128;j++){const a=j/128*Math.PI*2;pts.push(new THREE.Vector3(radius*Math.cos(a),0.018,radius*Math.sin(a)));}
-  const lg=new THREE.BufferGeometry().setFromPoints(pts);
-  const lm=new THREE.LineBasicMaterial({color:new THREE.Color(ringLineColors[i-1]),transparent:true,opacity:i===RB3.length-1?0.55:0.38});
-  radarGroup.add(new THREE.Line(lg,lm));
-}
-
-// ── SPOKES ───────────────────────────────────────────────────
-for(let i=0;i<NC;i++){
-  const[sa]=catArc(i);
-  const pts2=[new THREE.Vector3(0,0.017,0),new THREE.Vector3(RADAR_R*Math.cos(sa),0.017,RADAR_R*Math.sin(sa))];
-  const sg=new THREE.BufferGeometry().setFromPoints(pts2);
-  const sm=new THREE.LineBasicMaterial({color:0x223355,transparent:true,opacity:0.35});
-  radarGroup.add(new THREE.Line(sg,sm));
-}
-
-// ── CENTER DOT ───────────────────────────────────────────────
-const cdot=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.06,16),new THREE.MeshStandardMaterial({color:0x5566aa,emissive:0x334488,emissiveIntensity:1}));
-radarGroup.add(cdot);
-
-// ── BLIPS ────────────────────────────────────────────────────
-let blipGroup=new THREE.Group();
-radarGroup.add(blipGroup);
-let blipMeshes=[];   // [{sphere, glow, tierDot, blip}]
-let labelEls=[];     // [{el, blip}]
-let selectedKey=null;
-
-function buildBlips(blips){
-  radarGroup.remove(blipGroup);
-  blipGroup=new THREE.Group();
-  radarGroup.add(blipGroup);
-  blipMeshes=[];
-  document.getElementById('labels').innerHTML='';
-  labelEls=[];
-
-  for(const b of blips){
-    const cc=CATS[b.cat];const rc=RINGS[b.r];
-    const col=new THREE.Color(cc.color);const rcol=new THREE.Color(rc.color);
-    const grp=new THREE.Group();grp.position.set(b.bx,0,b.bz);
-
-    // Shadow
-    const shGeo=new THREE.CircleGeometry(0.17,24);
-    const shMat=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.25,depthWrite:false});
-    const sh=new THREE.Mesh(shGeo,shMat);sh.rotation.x=-Math.PI/2;sh.position.y=0.021;
-    grp.add(sh);
-
-    // Glow ring
-    const glGeo=new THREE.RingGeometry(0.14,0.22,32);
-    const glMat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.3,side:THREE.DoubleSide,depthWrite:false});
-    const gl=new THREE.Mesh(glGeo,glMat);gl.rotation.x=-Math.PI/2;gl.position.y=0.022;
-    grp.add(gl);
-
-    // Sphere
-    const spGeo=new THREE.SphereGeometry(0.12,18,12);
-    const spMat=new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:0.55,roughness:0.25,metalness:0.75});
-    const sp=new THREE.Mesh(spGeo,spMat);sp.position.y=0.14;sp.castShadow=true;
-    grp.add(sp);
-
-    // Tier dot (top-right of sphere)
-    const tdGeo=new THREE.SphereGeometry(0.038,8,6);
-    const tdMat=new THREE.MeshStandardMaterial({color:rcol,emissive:rcol,emissiveIntensity:0.9});
-    const td=new THREE.Mesh(tdGeo,tdMat);td.position.set(0.095,0.22,-0.095);
-    grp.add(td);
-
-    // Expert ring pulse (ring 0 only)
-    if(b.r===0){
-      const prGeo=new THREE.RingGeometry(0.19,0.23,32);
-      const prMat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.6,side:THREE.DoubleSide,depthWrite:false});
-      const pr=new THREE.Mesh(prGeo,prMat);pr.rotation.x=-Math.PI/2;pr.position.y=0.022;
-      grp.add(pr);
-      blipMeshes.push({sphere:sp,glow:gl,blip:b,baseY:0.14,pulseRing:pr,tierDot:td});
-    } else {
-      blipMeshes.push({sphere:sp,glow:gl,blip:b,baseY:0.14,pulseRing:null,tierDot:td});
-    }
-
-    blipGroup.add(grp);
-
-    // HTML label
-    const el=document.createElement('div');
-    el.className='blabel';
-    el.innerHTML=`<span>${b.name.length>16?b.name.slice(0,15)+'…':b.name}</span>`;
-    document.getElementById('labels').appendChild(el);
-    labelEls.push({el,blip:b});
-  }
-}
-
-buildBlips(makeTechBlips());
-
-// ══════════════════════════════════════════════════════════════
-//  NAV STATE & INFO CARD
-// ══════════════════════════════════════════════════════════════
-let nav={tech:null,sub:null,profile:null};
-
-const cardEl=document.getElementById('card');
-const cardHdr=document.getElementById('card-hdr');
-const cardBody=document.getElementById('card-body');
-
-function closeCard(){
-  cardEl.classList.remove('open');
-  selectedKey=null;
-  for(const bm of blipMeshes){
-    bm.sphere.scale.setScalar(1);
-    bm.sphere.material.emissiveIntensity=0.55;
-  }
-}
-
-function openCard(){cardEl.classList.add('open');}
-
-function svgArrow(){return `<svg class="darrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>`;}
-function svgBack(){return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>`;}
-
-function renderTech(tech){
-  nav.tech=tech;nav.sub=null;nav.profile=null;
-  const cc=CATS[tech.cat];const rc=RINGS[tech.r];
-  const tp=tech.subs.reduce((a,s)=>a+s.profiles.length,0);
-  cardHdr.innerHTML=`
-    <div class="card-icon" style="background:${cc.color}22;border:1px solid ${cc.color}44">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${cc.color}" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+  <a class="card ar" href="index.html#ar">
+    <div class="card-icon">
+      <!-- AR / camera icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7h3l2-3h8l2 3h3v13H3z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
     </div>
-    <div class="card-titlewrap">
-      <div class="card-title">${tech.name}</div>
-      <div class="card-sub">${cc.name} · ${tech.subs.length} sub-techs · ${tp} profiles</div>
+    <div class="card-tag">Immersive</div>
+    <div class="card-title">Launch AR Mode</div>
+    <div class="badge-row">
+      <span class="badge">Camera</span>
+      <span class="badge">Gyroscope</span>
+      <span class="badge">HTTPS</span>
     </div>
-    <div class="card-x" id="cx">✕</div>`;
-  cardBody.innerHTML=`
-    <div class="slabel">About</div>
-    <p class="card-desc">${tech.desc}</p>
-    <div class="slabel">Sub-technologies</div>
-    ${tech.subs.map((s,i)=>{const rc2=RINGS[s.r];return`<div class="drow" data-si="${i}">
-      <div class="dic" style="background:${cc.color}22;color:${cc.color}">${s.name.replace(/[^A-Za-z]/g,'').slice(0,2).toUpperCase()}</div>
-      <div class="dmain"><div class="dname">${s.name}</div><div class="dmeta"><span style="color:${rc2.color}">●</span> ${rc2.name} · ${s.profiles.length} profiles</div></div>
-      ${svgArrow()}
-    </div>`;}).join('')}`;
-  document.getElementById('cx').onclick=()=>{nav={tech:null,sub:null,profile:null};closeCard();};
-  cardBody.querySelectorAll('.drow').forEach(el=>el.addEventListener('click',()=>renderSub(tech,tech.subs[+el.dataset.si])));
-  openCard();
-}
+    <div class="card-desc">See the tech radar anchored in your real environment. Move your phone to walk around 18 technologies rendered in 3D on top of your camera feed.</div>
+    <div class="card-cta">Open experience <span class="arrow">→</span></div>
+  </a>
 
-function renderSub(tech,sub){
-  nav.sub=sub;nav.profile=null;
-  const cc=CATS[tech.cat];
-  const sorted=[...sub.profiles].sort((a,b)=>a.ring-b.ring);
-  cardHdr.innerHTML=`
-    <div class="card-icon" style="background:${cc.color}22;border:1px solid ${cc.color}44">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${cc.color}" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+  <a class="card threed" href="index.html#3d">
+    <div class="card-icon">
+      <!-- 3D cube icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2 3 7v10l9 5 9-5V7z"/>
+        <path d="M3 7l9 5 9-5"/>
+        <path d="M12 22V12"/>
+      </svg>
     </div>
-    <div class="card-titlewrap">
-      <div class="card-title">${sub.name}</div>
-      <div class="card-sub">${tech.name} · ${sub.profiles.length} profiles</div>
+    <div class="card-tag">Interactive</div>
+    <div class="card-title">3D Mode</div>
+    <div class="badge-row">
+      <span class="badge">No camera</span>
+      <span class="badge">Drag to orbit</span>
+      <span class="badge">Pinch to zoom</span>
     </div>
-    <div class="card-x" id="cx">✕</div>`;
-  cardBody.innerHTML=`
-    <div class="back-btn" id="bk">${svgBack()} ${tech.name}</div>
-    <div class="slabel">Profiles</div>
-    ${sorted.map((p,pi)=>{const rc=RINGS[p.ring];return`<div class="prow" data-pi="${pi}">
-      <div class="ptop">
-        <div class="pavi" style="background:${cc.color}28;color:${cc.color}">${p.ini}</div>
-        <div><div class="pname2">${p.name}</div><div class="prole">${p.role}</div></div>
-      </div>
-      <div class="pchips">
-        <span class="pchip" style="color:${rc.color}">● ${rc.name}</span>
-        <span class="pchip">${p.yrs} yrs</span>
-        <span class="pchip">View rates →</span>
-      </div>
-    </div>`;}).join('')}`;
-  document.getElementById('cx').onclick=()=>{nav.sub=null;nav.profile=null;closeCard();};
-  document.getElementById('bk').onclick=()=>renderTech(tech);
-  cardBody.querySelectorAll('.prow').forEach(el=>el.addEventListener('click',()=>renderProfile(tech,sub,sorted[+el.dataset.pi])));
-  openCard();
-}
+    <div class="card-desc">Explore the same 3D radar without the camera. Works on any device — drag to rotate, pinch to zoom, tap blips for deep dives into technologies and experts.</div>
+    <div class="card-cta">Open experience <span class="arrow">→</span></div>
+  </a>
 
-function renderProfile(tech,sub,p){
-  nav.profile=p;
-  const cc=CATS[tech.cat];const rc=RINGS[p.ring];
-  const rates=profileRates(p);const extras=profileExtras(p);
-  const availCol=extras.avail==='Available'?'#34d399':'rgba(255,255,255,0.45)';
-  cardHdr.innerHTML=`
-    <div class="pavi" style="width:42px;height:42px;border-radius:11px;background:${cc.color}28;color:${cc.color};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">${p.ini}</div>
-    <div class="card-titlewrap">
-      <div class="card-title">${p.name}</div>
-      <div class="card-sub">${p.role}</div>
+  <a class="card static" href="lingaro-tech-radar-static.html">
+    <div class="card-icon">
+      <!-- Radar / target icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="6"/>
+        <circle cx="12" cy="12" r="2"/>
+        <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+      </svg>
     </div>
-    <div class="card-x" id="cx">✕</div>`;
-  cardBody.innerHTML=`
-    <div class="back-btn" id="bk">${svgBack()} ${sub.name}</div>
-    <div class="badges">
-      <span class="badge" style="color:${rc.color}">● ${rc.name}</span>
-      <span class="badge">${p.yrs} yrs exp</span>
-      <span class="badge" style="color:${cc.color}">${cc.name}</span>
+    <div class="card-tag">Classic</div>
+    <div class="card-title">Static Tech Radar</div>
+    <div class="badge-row">
+      <span class="badge">2D view</span>
+      <span class="badge">Printable</span>
+      <span class="badge">Fast</span>
     </div>
-    <div class="slabel">Engagement Rates · per hour</div>
-    <div class="rgrid">
-      <div class="rcard" style="border-top:2px solid ${rc.color}88"><div class="rcur">EUR</div><div class="ramt">€${rates.eur}</div><div class="runit">/hr</div></div>
-      <div class="rcard" style="border-top:2px solid ${rc.color}88"><div class="rcur">PLN</div><div class="ramt">${rates.pln} zł</div><div class="runit">/hr</div></div>
-      <div class="rcard" style="border-top:2px solid ${rc.color}88"><div class="rcur">USD</div><div class="ramt">$${rates.usd}</div><div class="runit">/hr</div></div>
-      <div class="rcard" style="border-top:2px solid ${rc.color}88"><div class="rcur">CHF</div><div class="ramt">CHF ${rates.chf}</div><div class="runit">/hr</div></div>
-    </div>
-    <div class="slabel">Biography</div>
-    <p class="card-desc">${p.bio}</p>
-    <div class="slabel">Profile</div>
-    <p class="card-desc">${extras.desc}</p>
-    <div class="slabel">Key Skills</div>
-    <div class="stags">${extras.skills.map(s=>`<span class="stag">${s}</span>`).join('')}</div>
-    <div class="slabel">Engagement</div>
-    <div class="ebadges">
-      <span class="ebadge">${extras.engagement}</span>
-      <span class="ebadge" style="color:${availCol}">● ${extras.avail}</span>
-    </div>`;
-  document.getElementById('cx').onclick=()=>{nav.profile=null;closeCard();};
-  document.getElementById('bk').onclick=()=>renderSub(tech,sub);
-  openCard();
-}
+    <div class="card-desc">The traditional flat radar view — great for presentations, sharing, or a quick overview of adoption stages across all technology categories.</div>
+    <div class="card-cta">Open experience <span class="arrow">→</span></div>
+  </a>
 
-// ══════════════════════════════════════════════════════════════
-//  TOUCH / MOUSE INPUT
-// ══════════════════════════════════════════════════════════════
-const raycaster=new THREE.Raycaster();
-const pointer=new THREE.Vector2();
-let isDragging=false,pDown=false,lastPt={x:0,y:0},downPt={x:0,y:0};
-let pinchDist=null;
+</main>
 
-function onDown(e){
-  pDown=true;isDragging=false;
-  const p=e.touches?e.touches[0]:e;
-  lastPt={x:p.clientX,y:p.clientY};downPt={x:p.clientX,y:p.clientY};
-  if(e.touches&&e.touches.length===2) pinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-}
-function onMove(e){
-  if(!pDown) return;
-  const p=e.touches?e.touches[0]:e;
-  const dx=p.clientX-lastPt.x,dy=p.clientY-lastPt.y;
-  if(Math.hypot(dx,dy)>5) isDragging=true;
-  if(e.touches&&e.touches.length===2&&pinchDist!==null){
-    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-    oR=Math.max(3,Math.min(16,oR*(pinchDist/d)));pinchDist=d;
-  } else {
-    oTheta-=dx*0.007;
-    oPhi=Math.max(0.18,Math.min(1.45,oPhi+dy*0.005));
-    // Touch takes over heading from the gyro until re-levelled.
-    gyroManualOverride=true;
-  }
-  lastPt={x:p.clientX,y:p.clientY};
-  camUpdate();
-  if(e.cancelable) e.preventDefault();
-}
-function onUp(e){
-  if(!isDragging&&pDown){
-    const p=e.changedTouches?e.changedTouches[0]:e;
-    handleTap(p.clientX,p.clientY);
-  }
-  pDown=false;isDragging=false;pinchDist=null;
-}
-canvas.addEventListener('mousedown',onDown);
-canvas.addEventListener('mousemove',onMove);
-canvas.addEventListener('mouseup',onUp);
-canvas.addEventListener('touchstart',onDown,{passive:false});
-canvas.addEventListener('touchmove',onMove,{passive:false});
-canvas.addEventListener('touchend',onUp);
-canvas.addEventListener('wheel',e=>{oR=Math.max(3,Math.min(16,oR+e.deltaY*0.007));camUpdate();},{passive:true});
+<footer class="footer">© Lingaro · Tech Radar</footer>
 
-function handleTap(cx,cy){
-  // Don't process taps in card area
-  const cardRect=cardEl.getBoundingClientRect();
-  if(cardEl.classList.contains('open')&&cy>cardRect.top) return;
-
-  pointer.x=(cx/window.innerWidth)*2-1;
-  pointer.y=-(cy/window.innerHeight)*2+1;
-  raycaster.setFromCamera(pointer,camera);
-  const spheres=blipMeshes.map(bm=>bm.sphere);
-  const hits=raycaster.intersectObjects(spheres,false);
-  if(hits.length){
-    const bm=blipMeshes.find(b=>b.sphere===hits[0].object);
-    if(bm) selectBlip(bm);
-  } else {
-    closeCard();
-  }
-}
-
-function selectBlip(bm){
-  selectedKey=bm.blip.key;
-  for(const b of blipMeshes){
-    const sel=b.blip.key===selectedKey;
-    b.sphere.scale.setScalar(sel?1.35:1);
-    b.sphere.material.emissiveIntensity=sel?1.0:0.2;
-  }
-  renderTech(bm.blip.ref);
-}
-
-// ── CARD DRAG TO DISMISS ──────────────────────────────────────
-let cardDragY=0;
-document.getElementById('card-handle').addEventListener('touchstart',e=>cardDragY=e.touches[0].clientY,{passive:true});
-document.getElementById('card-handle').addEventListener('touchmove',e=>{if(e.touches[0].clientY-cardDragY>70)closeCard();},{passive:true});
-
-// ══════════════════════════════════════════════════════════════
-//  DEVICE ORIENTATION (Gyro AR — spirit-level stabilisation)
-// ──────────────────────────────────────────────────────────────
-//  Goal: the radar behaves like a physical object lying flat in the
-//  world. As you TILT the phone forward/back (beta) or ROLL it
-//  left/right (gamma), the radar counter-rotates so its disc stays
-//  horizontal — like a spirit level / gimbal. Turning the phone
-//  (alpha / compass heading) rotates your viewpoint AROUND the radar
-//  so you can walk around it. Values are low-pass filtered so the
-//  radar glides instead of jittering with raw sensor noise.
-// ══════════════════════════════════════════════════════════════
-let useGyro=false;
-let gyroManualOverride=false;  // true while the user is hand-orbiting
-const gyro={
-  alpha0:null,          // captured heading reference (deg)
-  heading:0,            // smoothed relative heading (rad)  → orbit azimuth
-  levelBeta:0,          // smoothed forward/back correction (rad)
-  levelGamma:0,         // smoothed left/right roll correction (rad)
-  ready:false
-};
-const GYRO_SMOOTH=0.14; // 0..1 — lower = smoother/heavier, higher = snappier
-const DEG=Math.PI/180;
-
-// Current screen rotation in degrees (0/90/180/270), cross-browser.
-function getScreenAngle(){
-  if(screen.orientation&&typeof screen.orientation.angle==='number')
-    return screen.orientation.angle;
-  if(typeof window.orientation==='number') return (window.orientation+360)%360;
-  return 0;
-}
-
-// Shortest-path angular lerp so heading wrap-around (359°→1°) is smooth.
-function lerpAngle(a,b,t){
-  let d=((b-a+Math.PI)%(2*Math.PI))-Math.PI;
-  if(d<-Math.PI)d+=2*Math.PI;
-  return a+d*t;
-}
-
-function applyGyro(e){
-  if(!useGyro||e.alpha==null) return;
-  gyro.ready=true;
-
-  // Heading → orbit azimuth (look around the radar).
-  if(gyro.alpha0===null) gyro.alpha0=e.alpha;
-  const relHeading=(((e.alpha-gyro.alpha0)+540)%360-180)*DEG; // -π..π
-  gyro.heading=lerpAngle(gyro.heading,relHeading,GYRO_SMOOTH);
-
-  // beta  = front/back tilt (0 = flat face-up, 90 = upright)
-  // gamma = left/right roll  (-90..90)
-  // We treat "phone held upright, looking forward" (beta≈90) as the
-  // neutral viewing pose, then use deviations to keep the radar level.
-  let betaCorr =((e.beta||0)-90)*DEG;   // how far from upright
-  let gammaCorr=(e.gamma||0)*DEG;        // roll amount
-
-  // Compensate for screen rotation: in landscape the phone's tilt and
-  // roll axes swap (and may invert), so remap them to keep the radar
-  // level regardless of how the device is held.
-  const so=getScreenAngle();
-  if(so===90){       // rotated left → landscape
-    const b=betaCorr; betaCorr=-gammaCorr; gammaCorr=b;
-  }else if(so===270||so===-90){ // rotated right → landscape
-    const b=betaCorr; betaCorr=gammaCorr; gammaCorr=-b;
-  }else if(so===180){           // upside-down portrait
-    betaCorr=-betaCorr; gammaCorr=-gammaCorr;
-  }
-
-  gyro.levelBeta =gyro.levelBeta +(betaCorr -gyro.levelBeta )*GYRO_SMOOTH;
-  gyro.levelGamma=gyro.levelGamma+(gammaCorr-gyro.levelGamma)*GYRO_SMOOTH;
-}
-window.addEventListener('deviceorientation',applyGyro,true);
-
-// Called every frame while gyro is active: applies the smoothed
-// leveling to the radar group and the smoothed heading to the orbit.
-function updateGyroFrame(){
-  if(!useGyro||!gyro.ready) return;
-  // Orbit azimuth follows compass heading (walk-around effect) unless
-  // the user has grabbed control by dragging (manual override).
-  if(!gyroManualOverride){
-    oTheta=gyro.heading;
-    camUpdate();
-  }
-  // Counter-rotate the radar so it stays level against phone tilt/roll.
-  // Clamped so extreme angles never flip the radar out of view.
-  const clamp=(v,m)=>Math.max(-m,Math.min(m,v));
-  radarGroup.rotation.z=clamp(-gyro.levelGamma,0.9);
-  radarGroup.rotation.x=clamp( gyro.levelBeta ,0.9);
-}
-
-async function enableGyro(){
-  if(typeof DeviceOrientationEvent==='undefined'&&typeof DeviceMotionEvent==='undefined')
-    return false;
-  // iOS 13+ (and iPadOS Safari) require an explicit permission request
-  // that MUST run inside the user-gesture handler.
-  if(typeof DeviceOrientationEvent!=='undefined'
-     && typeof DeviceOrientationEvent.requestPermission==='function'){
-    try{
-      const res=await DeviceOrientationEvent.requestPermission();
-      if(res==='granted'){useGyro=true;gyro.alpha0=null;return true;}
-      return false;
-    }catch(e){return false;}
-  }
-  // Android Chrome / most browsers: no explicit permission API — the
-  // event simply starts firing. We confirm we actually receive data
-  // within a short window, otherwise report gyro unavailable so the
-  // UI can fall back gracefully.
-  useGyro=true;gyro.alpha0=null;
-  return await new Promise(resolve=>{
-    let settled=false;
-    const probe=ev=>{
-      if(ev.alpha!=null&&!settled){
-        settled=true;
-        window.removeEventListener('deviceorientation',probe,true);
-        resolve(true);
-      }
-    };
-    window.addEventListener('deviceorientation',probe,true);
-    setTimeout(()=>{
-      if(!settled){
-        settled=true;
-        window.removeEventListener('deviceorientation',probe,true);
-        // Keep useGyro=true optimistically on Android — some devices
-        // fire the first event late — but signal "not confirmed" so
-        // the toast can be honest. Leveling still activates if events
-        // arrive later.
-        resolve(false);
-      }
-    },1200);
-  });
-}
-
-// ══════════════════════════════════════════════════════════════
-//  CAMERA BACKGROUND
-// ══════════════════════════════════════════════════════════════
-async function startCam(){
-  // getUserMedia only available on secure contexts (HTTPS or localhost)
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
-    return {ok:false,reason:'Camera requires HTTPS'};
-  }
-  // Try progressively simpler constraints for max device compatibility.
-  // Using {ideal:} (not exact) for facingMode avoids OverconstrainedError
-  // on devices where the back camera has a different label.
-  const candidates=[
-    // Prefer the rear camera at a sensible resolution for AR passthrough.
-    {video:{facingMode:{ideal:'environment'},
-            width:{ideal:1920},height:{ideal:1080}}},
-    {video:{facingMode:{ideal:'environment'}}}, // rear cam, any resolution
-    {video:true},                                // any camera as last resort
-  ];
-  for(const constraints of candidates){
-    try{
-      const stream=await navigator.mediaDevices.getUserMedia(constraints);
-      const v=document.getElementById('cam');
-      // Ensure autoplay attributes are set before assigning stream
-      v.muted=true;v.playsInline=true;
-      v.srcObject=stream;
-      try{await v.play();}catch(_){} // play() can reject on some iOS versions; stream still shows
-      v.classList.add('on');
-      renderer.setClearColor(0x000000,0); // transparent so camera shows through
-      return {ok:true};
-    }catch(e){
-      if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError')
-        return {ok:false,reason:'Camera permission denied'};
-      if(e.name==='NotFoundError'||e.name==='DevicesNotFoundError')
-        return {ok:false,reason:'No camera found'};
-      // OverconstrainedError or others → try next constraint set
-    }
-  }
-  return {ok:false,reason:'Camera unavailable'};
-}
-
-// ══════════════════════════════════════════════════════════════
-//  START SCREEN
-// ══════════════════════════════════════════════════════════════
-function showToast(msg,ms=3000){
-  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),ms);
-}
-
-function launchRadar(mode){
-  document.getElementById('start').style.display='none';
-  document.getElementById('hud').classList.add('show');
-  document.getElementById('labels').classList.add('show');
-  const toasts={
-    'ar':   'AR live · Radar auto-levels · Move phone to look around',
-    'ar-cam':'Camera live · Motion sensor unavailable',
-    'ar-gyro':'Gyro leveling active · Camera unavailable',
-    '3d':   '3D mode · Drag to orbit · Pinch to zoom',
-  };
-  showToast(toasts[mode]||'3D mode',3800);
-  // Trigger intro animation
-  introScale=0;
-}
-
-document.getElementById('btn-ar').addEventListener('click',async()=>{
-  const ld=document.getElementById('loading');ld.classList.add('show');
-  // Sequential: gyro first (iOS requires DeviceOrientationEvent.requestPermission
-  // to be called synchronously inside a user-gesture handler; doing it after an
-  // async camera call loses that gesture context on iOS Safari). On Android
-  // this simply starts the sensor stream and confirms data is arriving.
-  const gyroOk=await enableGyro();
-  const cam=await startCam();
-  ld.classList.remove('show');
-  if(!cam.ok){
-    renderer.setClearColor(0x06060f,1);
-    if(cam.reason) showToast(cam.reason,4200);
-  }
-  const mode=cam.ok?(gyroOk?'ar':'ar-cam'):(gyroOk?'ar-gyro':'3d');
-  launchRadar(mode);
-});
-document.getElementById('btn-3d').addEventListener('click',()=>{
-  renderer.setClearColor(0x06060f,1);
-  launchRadar('3d');
-});
-
-// ── Secure-context / capability hint on the start screen ──────
-// Camera (getUserMedia) only works on HTTPS or localhost. If we're not
-// in a secure context, surface the warning and relabel the AR button so
-// the gyro-only experience is still clearly available.
-(function checkCapabilities(){
-  const secure = window.isSecureContext ||
-                 location.protocol==='https:' ||
-                 location.hostname==='localhost' ||
-                 location.hostname==='127.0.0.1';
-  const hasCamAPI = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-  if(!secure || !hasCamAPI){
-    const warn=document.getElementById('https-warn');
-    if(warn) warn.style.display='block';
-    const arBtn=document.getElementById('btn-ar');
-    if(arBtn) arBtn.textContent='Launch AR (Gyro only)';
-  }
-})();
-
-// ── Auto-launch based on URL hash (from Capabilities landing page) ──
-// #ar  → click AR button
-// #3d  → click 3D button
-(function autoLaunchFromHash(){
-  const h=(location.hash||'').toLowerCase().replace('#','');
-  if(h!=='ar' && h!=='3d') return;
-  // Wait a tick so listeners are attached and capability check has run.
-  setTimeout(()=>{
-    const btn=document.getElementById(h==='ar'?'btn-ar':'btn-3d');
-    if(btn) btn.click();
-  },50);
-})();
-
-document.getElementById('btn-reset').addEventListener('click',()=>{
-  oTheta=0;oPhi=0.72;oR=7.5;
-  // Re-centre the gyro: recapture the heading reference and hand
-  // control back from touch to the sensor.
-  gyro.alpha0=null;gyro.heading=0;gyroManualOverride=false;
-  camUpdate();
-});
-document.getElementById('btn-home').addEventListener('click',()=>{
-  nav={tech:null,sub:null,profile:null};selectedKey=null;
-  for(const bm of blipMeshes){bm.sphere.scale.setScalar(1);bm.sphere.material.emissiveIntensity=0.55;}
-  closeCard();
-});
-
-// ══════════════════════════════════════════════════════════════
-//  RESIZE
-// ══════════════════════════════════════════════════════════════
-window.addEventListener('resize',()=>{
-  camera.aspect=window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth,window.innerHeight);
-});
-
-// ══════════════════════════════════════════════════════════════
-//  ANIMATION LOOP
-// ══════════════════════════════════════════════════════════════
-const clock=new THREE.Clock();
-
-renderer.setAnimationLoop(()=>{
-  const t=clock.getElapsedTime();
-
-  // Gyro spirit-level stabilisation (applied before rendering).
-  updateGyroFrame();
-
-  // Intro scale animation
-  if(introScale<1&&document.getElementById('start').style.display==='none'){
-    introScale=Math.min(1,introScale+0.04);
-    const s=introScale<0.5?2*introScale*introScale:1-Math.pow(-2*introScale+2,2)/2; // ease in-out quad
-    radarGroup.scale.setScalar(s);
-  }
-
-  // Blip animations
-  for(const bm of blipMeshes){
-    const sel=bm.blip.key===selectedKey;
-    const phase=hashStr(bm.blip.key)*2.7;
-    const bob=Math.sin(t*2.2+phase)*0.016;
-    bm.sphere.position.y=bm.baseY+(sel?0.06:0)+bob;
-    bm.glow.material.opacity=0.15+0.15*Math.sin(t*1.8+phase);
-    bm.glow.scale.setScalar(1+0.08*Math.sin(t*2+phase));
-    if(sel){
-      bm.sphere.material.emissiveIntensity=0.75+0.25*Math.sin(t*5);
-    }
-    if(bm.pulseRing){
-      const ps=(t*0.8+phase*0.3)%1;
-      bm.pulseRing.scale.setScalar(1+ps*1.4);
-      bm.pulseRing.material.opacity=0.5*(1-ps);
-    }
-  }
-
-  // Label projection
-  const labelsEl=document.getElementById('labels');
-  if(labelsEl.classList.contains('show')){
-    for(const{el,blip}of labelEls){
-      const wp=new THREE.Vector3(blip.bx,0.34,blip.bz);
-      radarGroup.localToWorld(wp);
-      wp.project(camera);
-      if(wp.z<1){
-        const sx=(wp.x+1)/2*window.innerWidth;
-        const sy=(-wp.y+1)/2*window.innerHeight;
-        el.style.display='block';
-        el.style.left=sx+'px';
-        el.style.top=sy+'px';
-      } else {
-        el.style.display='none';
-      }
-    }
-  }
-
-  renderer.render(scene,camera);
-});
-</script>
 </body>
 </html>
